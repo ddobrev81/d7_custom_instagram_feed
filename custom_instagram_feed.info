@@ -1,0 +1,14 @@
+name = Custom Instagram Feed
+description = Create Instragram Feed Parser
+package = Feeds
+core = 7.x
+
+dependencies[] = feeds
+dependencies[] = drupagram
+
+files[] = custom_instagram_feed.install
+files[] = custom_instagram_feed.pages.inc
+files[] = custom_instagram_feed.module
+files[] = plugins/PrpInstagramFeedFetcher.inc
+files[] = plugins/PrpInstagramFeedParser.inc
+files[] = plugins/PrpInstagramFeedFetcherbyHashtag.inc

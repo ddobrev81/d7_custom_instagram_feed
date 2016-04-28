@@ -1,0 +1,56 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the custom_instagram_feed module.
+ *
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function custom_instagram_feed_schema() {
+
+  $schema['custom_instagram_feed_oauth'] = array(
+    'description' => "Stores oauth information about custom instagram",
+    'fields' => array(
+      'oauth_token' => array(
+        'description' => 'The token_key for {oauth-based access.',
+        'type' => 'varchar',
+        'length' => 64,
+      ),
+      'oauth_token_secret' => array(
+        'description' => 'The token_secret for oauth-based access.',
+        'type' => 'varchar',
+        'length' => 64,
+      ),
+      'oauth_client_id' => array(
+        'description' => 'The token_key for oauth-based access.',
+        'type' => 'varchar',
+        'length' => 64,
+      ),
+    ),
+    'primary key' => array('oauth_token_secret', 'oauth_client_id'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Adds the custom_instagram_feed_oauth table.
+ */
+function custom_instagram_feed_update_7103() {
+  if (!db_table_exists('custom_instagram_feed_oauth')) {
+    drupal_install_schema('custom_instagram_feed');
+    return st('Custom Instagram feed oauth table was created successfully');
+  }
+}
+
+/**
+ * Implements hook_enable().
+ *
+ * Clear Feed's plugin cache so that this plugin shows up.
+ */
+function custom_instagram_feed_enable() {
+  cache_clear_all('plugins:feeds:plugins', 'cache');
+}

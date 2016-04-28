@@ -1,0 +1,139 @@
+<?php
+
+/**
+ * @file
+ */
+
+global $base_url;
+define('CUSTOM_INSTAGRAM_CALLBACK', $base_url . '/custom_instagram_feed/oauth');
+
+/**
+ * Implements hook_help().
+ */
+function custom_instagram_feed_help() {
+  $path = drupal_get_path('module', 'custom_instagram_feed');
+  $output = '';
+
+  switch ($path) {
+    case "admin/help#custom_instagram_feed":
+      $output = t('Adds custom parser and fetcher for Instagram searching.');
+      break;
+  }
+
+  return $output;
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function custom_instagram_feed_ctools_plugin_api($owner, $api) {
+  if ($owner == 'feeds' && $api == 'plugins') {
+    return array('version' => 1);
+  }
+}
+
+/**
+ * Implements hook_feeds_plugins().
+ */
+function custom_instagram_feed_feeds_plugins() {
+  $path = drupal_get_path('module', 'custom_instagram_feed') . '/plugins';
+  $info = array();
+
+  $info['PrpInstagramFeedParser'] = array(
+    'name' => t('Instagram Parser'),
+    'description' => t('Parse instagrams'),
+    'handler' => array(
+      'parent' => 'FeedsParser',
+      'class' => 'PrpInstagramFeedParser',
+      'file' => 'PrpInstagramFeedParser.inc',
+      'path' => $path,
+    ),
+  );
+
+  $info['PrpInstagramFeedFetcher'] = array(
+    'name' => t('Instagram Fetcher'),
+    'description' => t('Fetcher Instagram'),
+    'handler' => array(
+      'parent' => 'FeedsFetcher',
+      'class' => 'PrpInstagramFeedFetcher',
+      'file' => 'PrpInstagramFeedFetcher.inc',
+      'path' => $path,
+    ),
+  );
+  $info['PrpInstagramFeedFetcherbyHashtag'] = array(
+    'name' => t('Instagram Fetcher by hashtag'),
+    'description' => t('Fetch instagram by certain hashtag'),
+    'handler' => array(
+      'parent' => 'FeedsFetcher',
+      'class' => 'PrpInstagramFeedFetcherbyHashtag',
+      'file' => 'PrpInstagramFeedFetcherbyHashtag.inc',
+      'path' => $path,
+    ),
+  );
+  return $info;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function custom_instagram_feed_menu() {
+  return array(
+    'admin/config/services/instagram-parser' => array(
+      'title' => 'Instagram Configuration',
+      'description' => 'Configure integration with Instagram (and compatible) API services.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('custom_instagram_feed_admin_form'),
+      'access arguments' => array('administer site configuration'),
+      'file' => 'custom_instagram_feed.pages.inc',
+    ),
+
+    'custom_instagram_feed/oauth' => array(
+      'page callback' => array('custom_instagram_feed_oauth_callback'),
+      'access arguments' => array('administer site configuration'),
+      'file' => 'custom_instagram_feed.pages.inc',
+    ),
+
+    'admin/config/module_debug_mode' => array(
+      'title' => 'Modules debug mode settings',
+      'description' => 'Settings page for debug mode of custom modules.',
+      'position' => 'left',
+      'page callback' => 'system_admin_menu_block_page',
+      'access arguments' => array('access administration pages'),
+      'file' => 'system.admin.inc',
+      'file path' => drupal_get_path('module', 'system'),
+    ),
+
+    'admin/config/module_debug_mode/custom_instagram_feed_settings' => array(
+      'title' => 'Custom Instagram feed',
+      'description' => 'The admin page of Custom Instagram feed module.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('custom_instagram_feed_settings'),
+      'access arguments' => array('access administration pages'),
+      'type' => MENU_NORMAL_ITEM,
+    ),
+  );
+}
+
+/**
+ * Define module administer form.
+ */
+function custom_instagram_feed_settings($form, &$form_state) {
+  $form = array();
+
+  $form['custom_instagram_feed_debug'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Custom Instagram feed debug mode'),
+    '#default_value' => variable_get('custom_instagram_feed_debug', 0),
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Custom function that sets watchdog messages.
+ */
+function custom_instagram_feed_watchdog_custom($type, $message, $variables = array(), $severity = WATCHDOG_DEBUG) {
+  if (variable_get('custom_instagram_feed_debug', 0) == 1) {
+    watchdog($type, $message, $variables, $severity);
+  }
+}
